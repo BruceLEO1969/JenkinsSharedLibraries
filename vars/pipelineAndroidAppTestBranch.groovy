@@ -7,13 +7,18 @@ def call(Closure body={}) {
     body.delegate = pipelineParams
     body()
 
-    pipeline {
-        agent none
-
+    pipeline {  
+       agent {
+       node {
+            label "master"
+            customWorkspace "workspace/test_dev"
+            }
+        }
         options {
             timeout(time: 1, unit: 'HOURS')
             skipDefaultCheckout()
             ansiColor('xterm')
+            
             // retry(3)
         }
 
@@ -30,35 +35,12 @@ def call(Closure body={}) {
         }
 
         stages {
-            // stage('Check Branch/Tag') {
-            //     agent {
-            //         node {
-            //             label 'mac-mini1'
-            //             customWorkspace "workspace/test_dev"
-            //         }
-            //     }
-            //     when {
-            //         beforeAgent true
-            //         not {
-            //             anyOf {
-            //                 branch "test/*"
-            //             }
-            //         }
-            //     }
-            //     steps {
-            //         error "Don't know what to do with this branch or tag: ${env.BRANCH_NAME}"
-            //     }
-            // }
+       
 
-            stage('Checkout SCM') {
-                agent {
-                    node {
-                        label 'mac-mini1'
-                        customWorkspace "workspace/test_dev"
-                    }
-                }
+            stage('Checkout SCM') {   
+                
                 when {
-                    beforeAgent true
+                    //beforeAgent true
                     branch "test/*"
                 }
                 steps {
@@ -68,34 +50,8 @@ def call(Closure body={}) {
                 }
             }
 
-            // stage('Unit Testing') {
-            //     agent {
-            //         node {
-            //             label 'mac-mini1'
-            //             customWorkspace "workspace/test_dev"
-            //         }
-            //     }
-            //     environment {
-            //         ANDROID_SDK_ROOT = "${HOME}/Library/Android/sdk"
-            //         ANDROID_HOME = "${ANDROID_SDK_ROOT}"
-            //     }
-            //     when {
-            //         beforeAgent true
-            //         environment name: 'UNITTESTING_STATE', value: 'true'
-            //     }
-            //     steps {
-            //         // unittestTestBranch(buildTypes, productFlavors)
-            //         echo 'pass'
-            //     }
-            // }
 
             stage("Incerease version code") {
-                agent {
-                    node {
-                        label 'mac-mini1'
-                        customWorkspace "workspace/test_dev"
-                    }
-                }
                 environment {
                     ANDROID_SDK_ROOT = "${HOME}/Library/Android/sdk"
                     //ANDROID_SDK_ROOT = "/usr/local/Caskroom/android-sdk/4333796"
@@ -185,12 +141,6 @@ def call(Closure body={}) {
             // }
 
             stage('Compile and upload') {
-                agent {
-                    node {
-                        label 'mac-mini1'
-                        customWorkspace "workspace/test_dev"
-                    }
-                }
                 environment {
                     ANDROID_SDK_ROOT = "${HOME}/Library/Android/sdk"
                     //ANDROID_SDK_ROOT = "/usr/local/Caskroom/android-sdk/4333796"
@@ -203,12 +153,6 @@ def call(Closure body={}) {
             }
 
             stage("Git commit") {
-                agent {
-                    node {
-                        label 'mac-mini1'
-                        customWorkspace "workspace/test_dev"
-                    }
-                }
                 when {
                     expression {
                         currentBuild.result == null || currentBuild.result == 'SUCCESS' 
